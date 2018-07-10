@@ -10,7 +10,7 @@ from bs4 import BeautifulSoup
 import lib.output
 
 
-VERSION = "0.0.1"
+VERSION = "0.0.2"
 GRAY_HAT_WARFARE_URL = "https://buckets.grayhatwarfare.com/results"
 HOME = os.getcwd()
 LOOT_DIRECTORY = "{}/loot".format(HOME)
@@ -88,7 +88,16 @@ def download_files(url, path, debug=False):
         file_path = "{}/{}".format(path, url.split("/")[-1])
         downloader = urllib2.urlopen(url)
         if os.path.isfile(file_path):
-            file_path = "{}({})".format(file_path, len([f for f in os.listdir(path) if f == file_path.split("/")[-1]]))
+            amount = 0
+            path = file_path.split("/")
+            path.pop()
+            path = "/".join(path)
+            files_in_path = os.listdir(path)
+            filename = url.split("/")[-1]
+            for f in files_in_path:
+                if filename in f:
+                    amount += 1
+            file_path = "{}({})".format(file_path, amount)
         with open(file_path, "a+") as data:
             meta_data = downloader.info()
             file_size = int(meta_data.getheaders("Content-Length")[0])
@@ -108,8 +117,8 @@ def download_files(url, path, debug=False):
                 sys.stdout.write("Progress: {}    \r".format(status))
                 sys.stdout.flush()
         lib.output.success("file saved to: {}".format(file_path))
-    except urllib2.HTTPError:
-        lib.output.fatal("unable to download file: {}".format(url.split("/")[-1]))
+    except Exception as e:
+        lib.output.fatal("unable to download file: {}; received error: {}".format(url.split("/")[-1], str(e)))
 
 
 def get_random_agent(debug=False):

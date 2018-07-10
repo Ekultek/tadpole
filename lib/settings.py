@@ -17,7 +17,7 @@ LOOT_DIRECTORY = "{}/loot".format(HOME)
 DEFAULT_USER_AGENT = "BucketDump/{} (Language={};Platform={})".format(
     VERSION, sys.version.split(" ")[0], platform.platform().split("-")[0]
 )
-#  	tADpOlE 	  Aws Download Open buckEts
+#  	tADpOlE 	  Aws Download Open buckEt files
 BANNER = """\033[36m
   _            _____         ____  _ ______ 
  | |     /\   |  __ \       / __ \| |  ____|

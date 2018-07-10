@@ -1,6 +1,27 @@
 import argparse
 
 
+class StoreDictKeyPairs(argparse.Action):
+
+    """
+    custom action to create a dict from a provided string in the format of key=value
+    """
+
+    retval = {}
+
+    def __call__(self, parser, namespace, values, option_string=None):
+        for kv in values.split(","):
+            if kv.count("=") != 1:
+                first_equal_index = kv.index("=")
+                key = kv[:first_equal_index]
+                value = kv[first_equal_index + 1:]
+                self.retval[key] = value
+            else:
+                k, v = kv.split("=")
+                self.retval[k] = v
+        setattr(namespace, self.dest, self.retval)
+
+
 class BucketDumpParser(argparse.ArgumentParser):
 
     def __init__(self):
@@ -15,4 +36,8 @@ class BucketDumpParser(argparse.ArgumentParser):
                             help="Use a random HTTP User-Agent")
         parser.add_argument("--verbose", action="store_true", dest="runVerbose",
                             help="Run in verbose mode")
+        parser.add_argument("-P", "--proxy", metavar="PROXY", dest="useProxy",
+                            help="Use a proxy for the requests")
+        parser.add_argument("-H", "--headers", metavar="HEADER=1,HEADER=2,etc..", dest="extraHeaders",
+                            action=StoreDictKeyPairs, help="Pass extra headers with your request")
         return parser.parse_args()

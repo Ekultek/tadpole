@@ -1,59 +1,49 @@
-def set_color(string, level=None):
-    """
-    set the string color
-    """
-    color_levels = {
-        10: "\033[36m{}\033[0m",
-        15: "\033[1m\033[32m{}\033[0m",
-        20: "\033[32m{}\033[0m",
-        30: "\033[1m\033[33m{}\033[0m",
-        35: "\033[33m{}\033[0m",
-        40: "\033[1m\033[31m{}\033[0m",
-        50: "\033[1m\033[30m{}\033[0m",
-        60: "\033[7;31;31m{}\033[0m"
-    }
-    if level is None:
-        return color_levels[20].format(string)
-    else:
-        return color_levels[int(level)].format(string)
+import time
 
 
 def info(string):
     print(
-        set_color("[INFO] {}".format(string), level=20)
+        "\033[37m[{}]\033[0m\033[32m[INFO]\033[0m {}".format(
+            time.strftime("%H:%M:%S"), string
+        )
     )
 
 
 def debug(string):
     print(
-        set_color("[DEBUG] {}".format(string), level=10)
+        "\033[37m[{}]\033[0m\033[36m[DEBUG]\033[0m {}".format(
+            time.strftime("%H:%M:%S"), string
+        )
     )
 
 
-def warn(string, minor=False):
-    if not minor:
-        print(
-            set_color("[WARN] {}".format(string), level=30)
+def warn(string):
+    print(
+        "\033[37m[{}]\033[0m\033[33m[WARNING]\033[0m {}".format(
+            time.strftime("%H:%M:%S"), string
         )
-    else:
-        print(
-            set_color("[WARN] {}".format(string), level=35)
-        )
+    )
 
 
 def error(string):
     print(
-        set_color("[ERROR] {}".format(string), level=40)
+        "\033[37m[{}]\033[0m\033[31m[ERROR]\033[0m {}".format(
+            time.strftime("%H:%M:%S"), string
+        )
     )
 
 
 def fatal(string):
     print(
-        set_color("[FATAL] {}".format(string), level=60)
+        "\033[37m[{}]\033[0m\033[7;31;31m[FATAL]\033[0m {}".format(
+            time.strftime("%H:%M:%S"), string
+        )
     )
 
 
 def success(string):
     print(
-        set_color("[SUCCESS] {}".format(string), level=15)
-)
+        "\033[37m[{}]\033[0m\033[1m\033[32m[SUCCESS]\033[0m {}".format(
+            time.strftime("%H:%M:%S"), string
+        )
+    )

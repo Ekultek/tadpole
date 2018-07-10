@@ -1,7 +1,6 @@
 import re
 import os
 import sys
-import urllib2
 import platform
 
 import requests
@@ -10,7 +9,10 @@ from bs4 import BeautifulSoup
 import lib.output
 
 
-VERSION = "0.0.2"
+class AccessDeniedByAWS(Exception): pass
+
+
+VERSION = "0.0.3"
 GRAY_HAT_WARFARE_URL = "https://buckets.grayhatwarfare.com/results"
 HOME = os.getcwd()
 LOOT_DIRECTORY = "{}/loot".format(HOME)
@@ -85,8 +87,10 @@ def download_files(url, path, debug=False):
     if not os.path.exists(path):
         os.makedirs(path)
     try:
+        if debug:
+            lib.output.debug("attempting to download file from {}".format(url))
         file_path = "{}/{}".format(path, url.split("/")[-1])
-        downloader = urllib2.urlopen(url)
+        downloader = requests.get(url, stream=True)
         if os.path.isfile(file_path):
             amount = 0
             path = file_path.split("/")
@@ -99,26 +103,18 @@ def download_files(url, path, debug=False):
                     amount += 1
             file_path = "{}({})".format(file_path, amount)
         with open(file_path, "a+") as data:
-            meta_data = downloader.info()
-            file_size = int(meta_data.getheaders("Content-Length")[0])
-            lib.output.info("downloading file: {} bytes: {}".format(url.split("/")[-1], file_size))
-            file_size_dl = 0
-            block_size = 8192
-            while True:
-                buffered = downloader.read(block_size)
-                if not buffered:
-                    break
-                file_size_dl += len(buffered)
-                if debug:
-                    lib.output.debug("{} downloaded".format(file_size_dl))
-                data.write(buffered)
-                status = r"%10d  [%3.2f%%]" % (file_size_dl, file_size_dl * 100. / file_size)
-                status = status + chr(8) * (len(status) + 1)
-                sys.stdout.write("Progress: {}    \r".format(status))
-                sys.stdout.flush()
-        lib.output.success("file saved to: {}".format(file_path))
+            for chunk in downloader.iter_content(chunk_size=8192):
+                if "AccessDenied" in chunk:
+                    data.write("ACCESS DENIED")
+                    raise AccessDeniedByAWS("access to s3 bucket is denied by AWS")
+                if chunk:
+                    data.write(chunk)
+        if debug:
+            lib.output.success("file saved to: {}".format(file_path))
+    except AccessDeniedByAWS:
+        lib.output.warn("unable to download file: {}; access denied".format(url.split("/")[-1]))
     except Exception as e:
-        lib.output.fatal("unable to download file: {}; received error: {}".format(url.split("/")[-1], str(e)))
+        lib.output.fatal("failed to download file due to unknown error: {}".format(str(e)))
 
 
 def get_random_agent(debug=False):

@@ -36,7 +36,7 @@ def main():
     info("gathered a total of {} files from {} different bucket(s)".format(
         len(gathered_links[0]), len(gathered_links[1]))
     )
-    info("downloading all files")
+    info("downloading all discovered file(s)")
     for f in gathered_links[0]:
         download_files(f, "{}/{}".format(LOOT_DIRECTORY, f.split("/")[2]), debug=opt.runVerbose)
     success("files have been successfully downloaded into: {}".format(LOOT_DIRECTORY))

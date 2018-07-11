@@ -52,11 +52,14 @@ def main():
         info("gathered a total of {} files from {} different bucket(s)".format(
             len(gathered_links[0]), len(gathered_links[1]))
         )
-        info("downloading all discovered file(s)")
-        for f in gathered_links[0]:
-            download_files(f, "{}/{}".format(LOOT_DIRECTORY.format(
-                HOME, opt.searchQuery
-            ), f.split("/")[2]), debug=opt.runVerbose, proxy=opt.useProxy)
-        success("files have been successfully downloaded into: {}".format(LOOT_DIRECTORY.format(HOME, opt.searchQuery)))
+        if len(gathered_links[0]) != 0:
+            info("downloading all discovered file(s)")
+            for f in gathered_links[0]:
+                download_files(f, "{}/{}".format(LOOT_DIRECTORY.format(
+                    HOME, opt.searchQuery
+                ), f.split("/")[2]), debug=opt.runVerbose, proxy=opt.useProxy)
+            success("files have been successfully downloaded into: {}".format(LOOT_DIRECTORY.format(HOME, opt.searchQuery)))
+        else:
+            error("no open buckets discovered with provided query")
     except KeyboardInterrupt:
         error("user quit")

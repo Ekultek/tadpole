@@ -43,7 +43,7 @@ def main():
                 else:
                     info("it appears that your proxy is running correctly")
             except ValueError:
-                error("something went wrong during JSON conversion")
+                error("something went wrong during JSON conversion, unable to verify proxy")
 
         if opt.searchQuery is None:
             import os
@@ -60,7 +60,7 @@ def main():
             agent = DEFAULT_USER_AGENT
         gathered_links = gather_bucket_links(
             GRAY_HAT_WARFARE_URL, opt.searchQuery, post_data=post_data, user_agent=agent, debug=opt.runVerbose,
-            proxy=opt.useProxy, extra_headers=opt.extraHeaders
+            proxy=opt.useProxy, extra_headers=opt.extraHeaders, crawl_bucket=opt.spiderFoundBucket
         )
         info("gathered a total of {} files from {} different bucket(s)".format(
             len(gathered_links[0]), len(gathered_links[1]))

@@ -12,7 +12,7 @@ import lib.output
 class AccessDeniedByAWS(Exception): pass
 
 
-VERSION = "0.0.10"
+VERSION = "0.0.11"
 GRAY_HAT_WARFARE_URL = "https://buckets.grayhatwarfare.com/results"
 HOME = os.getcwd()
 LOOT_DIRECTORY = "{}/loot/{}"
@@ -55,6 +55,8 @@ def gather_bucket_links(url, query, **kwargs):
     post_data = kwargs.get("post_data", None)
     debug = kwargs.get("debug", False)
     proxy = kwargs.get("proxy", None)
+    crawl_bucket = kwargs.get("crawl_bucket", False)
+    download_limit = kwargs.get("download_limit", 300)
 
     aws_regex = re.compile(".amazonaws.", re.I)
     results_regex = re.compile("results", re.I)
@@ -91,8 +93,10 @@ def gather_bucket_links(url, query, **kwargs):
             page_links.add(link["href"])
             if debug:
                 lib.output.debug("found page link: {}".format(link["href"]))
-    for page in page_links:
-        if "!/0" not in page:
+    for page in sorted(page_links):
+        if "!/0" not in page or not page == "/results/!/0":
+            if debug:
+                lib.output.debug("currently scraping '{}'".format(page))
             if url[-1] == "/":
                 url[-1] = ""
             url = url.replace("/results", page)
@@ -104,10 +108,55 @@ def gather_bucket_links(url, query, **kwargs):
             url = url.replace(page, "/results")
 
     for item in found_files:
-        open_buckets.add(item.split("/")[2])
+        bucket_url = item.split("/")[2]
+        open_buckets.add(bucket_url)
+        if crawl_bucket:
+            # gotta leave out the headers or everything gets messed up
+            spider_bucket(bucket_url, query, proxy=proxy, debug=debug, limit=download_limit)
     if debug:
         lib.output.debug("done!")
     return found_files, open_buckets
+
+
+def spider_bucket(bucket, query, proxy=None, headers=None, debug=False, limit=300):
+    if "http" not in bucket:
+        bucket = "http://{}".format(bucket)
+
+    if headers is not None:
+        use_headers = {}
+        for header in headers.keys():
+            use_headers[header] = headers[header]
+    else:
+        use_headers = None
+
+    lib.output.info("swimming upstream to '{}'".format(bucket))
+    req = requests.get(bucket, proxies=proxy, headers=use_headers)
+    soup = BeautifulSoup(req.content, "lxml")
+    keys = soup.find_all("key")
+    if len(keys) == 0:
+        lib.output.error("no files in bucket, skipping")
+        return
+    key_stripper = lambda s: s.strip("<Key>").strip("</Key>")  # dolla dolla bills ya'll
+    lib.output.info("found a total of {} file(s) in S3 bucket '{}', downloading a max of {} file(s)".format(
+        len(keys), bucket, limit
+    ))
+    for i, key in enumerate(keys, start=1):
+        if i == limit:
+            lib.output.warn("hit max download limit, leaving bucket")
+            break
+        if i == len(keys):
+            lib.output.warn("all files downloaded, leaving bucket")
+            break
+        key = key_stripper(str(key.text))
+        download_url = "{}/{}".format(bucket, key)
+        download_path = "{}/{}".format(
+            LOOT_DIRECTORY.format(HOME, query),
+            bucket.split("/")[2]
+        )
+        download_files(
+            download_url, download_path,
+            debug=debug, proxy=proxy
+        )
 
 
 def download_files(url, path, debug=False, **kwargs):
@@ -146,7 +195,7 @@ def download_files(url, path, debug=False, **kwargs):
         with open(file_path, "a+") as data:
             for chunk in downloader.iter_content(chunk_size=8192):
                 if "AccessDenied" in chunk:
-                    data.write("ACCESS DENIED")
+                    os.unlink(file_path)
                     raise AccessDeniedByAWS("access to s3 bucket is denied by AWS")
                 if chunk:
                     data.write(chunk)

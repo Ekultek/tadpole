@@ -111,8 +111,11 @@ def gather_bucket_links(url, query, **kwargs):
         bucket_url = item.split("/")[2]
         open_buckets.add(bucket_url)
         if crawl_bucket:
-            # gotta leave out the headers or everything gets messed up
-            spider_bucket(bucket_url, query, proxy=proxy, debug=debug, limit=download_limit)
+            try:
+                # gotta leave out the headers or everything gets messed up
+                spider_bucket(bucket_url, query, proxy=proxy, debug=debug, limit=download_limit)
+            except Exception:
+                lib.output.fatal("issue while downloading bucket files, skipping")
     if debug:
         lib.output.debug("done!")
     return found_files, open_buckets

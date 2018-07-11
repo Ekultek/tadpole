@@ -12,8 +12,8 @@ import lib.output
 class AccessDeniedByAWS(Exception): pass
 
 
-VERSION = "0.0.4"
-GRAY_HAT_WARFARE_URL = "http://buckets.grayhatwarfare.com/results"
+VERSION = "0.0.5"
+GRAY_HAT_WARFARE_URL = "https://buckets.grayhatwarfare.com/results"
 HOME = os.getcwd()
 LOOT_DIRECTORY = "{}/loot".format(HOME)
 DEFAULT_USER_AGENT = "tADpOlE/{} (Language={};Platform={})".format(
@@ -45,6 +45,7 @@ def gather_bucket_links(url, query, **kwargs):
     proxy = kwargs.get("proxy", None)
 
     aws_regex = re.compile(".amazonaws.", re.I)
+    results_regex = re.compile("results", re.I)
     found_files = set()
     page_links = set()
     open_buckets = set()
@@ -74,17 +75,21 @@ def gather_bucket_links(url, query, **kwargs):
     soup = BeautifulSoup(req.content, "html.parser")
     all_links = soup.find_all('a', href=True)
     for link in all_links:
-        if "/results/{}".format(query) in link["href"]:
+        if results_regex.search(link["href"]) is not None:
             page_links.add(link["href"])
             if debug:
                 lib.output.debug("found page link: {}".format(link["href"]))
     for page in page_links:
-        url = url.replace("/results", page)
-        req = requests.get(url, headers=headers, proxies=proxy)
-        soup = BeautifulSoup(req.content, "html.parser")
-        for link in soup.find_all('a', href=True):
-            if aws_regex.search(link["href"]) is not None:
-                found_files.add(link["href"])
+        if "!/0" not in page:
+            if url[-1] == "/":
+                url[-1] = ""
+            url = url.replace("/results", page)
+            req = requests.get(url, headers=headers)
+            soup = BeautifulSoup(req.content, "html.parser")
+            for link in soup.find_all('a', href=True):
+                if aws_regex.search(link["href"]) is not None:
+                    found_files.add(link["href"])
+            url = url.replace(page, "/results")
 
     for item in found_files:
         open_buckets.add(item.split("/")[2])

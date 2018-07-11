@@ -6,7 +6,8 @@ from lib.settings import (
     DEFAULT_USER_AGENT,
     get_random_agent,
     BANNER,
-    HOME
+    HOME,
+    search_files
 )
 from lib.cmd import BucketDumpParser
 from lib.output import (
@@ -22,6 +23,14 @@ def main():
         opt = BucketDumpParser().optparse()
 
         print(BANNER)
+
+        if opt.fileSearch is not None:
+            discovered_files = search_files(opt.fileSearch, LOOT_DIRECTORY.format(HOME, ""))
+            if len(discovered_files) != 0:
+                info("a total of {} files matched your search".format(len(discovered_files)))
+                for i, f in enumerate(discovered_files, start=1):
+                    print("#{}. {}".format(i, f))
+            exit(0)
 
         if opt.searchQuery is None:
             fatal("must provide a search query with `-q/--query` flag")

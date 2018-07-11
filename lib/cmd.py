@@ -40,4 +40,6 @@ class BucketDumpParser(argparse.ArgumentParser):
                             help="Use a proxy for the requests")
         parser.add_argument("-H", "--headers", metavar="HEADER=1,HEADER=2,etc..", dest="extraHeaders",
                             action=StoreDictKeyPairs, help="Pass extra headers with your request")
+        parser.add_argument("-s", "--search", metavar="STRING", dest="fileSearch",
+                            help="Search for a file and output the location of it")
         return parser.parse_args()

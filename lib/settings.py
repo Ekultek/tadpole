@@ -12,7 +12,7 @@ import lib.output
 class AccessDeniedByAWS(Exception): pass
 
 
-VERSION = "0.0.6"
+VERSION = "0.0.7"
 GRAY_HAT_WARFARE_URL = "https://buckets.grayhatwarfare.com/results"
 HOME = os.getcwd()
 LOOT_DIRECTORY = "{}/loot/{}"
@@ -154,3 +154,13 @@ def get_random_agent(debug=False):
         if debug:
             lib.output.debug("grabbed random User-Agent: {}".format(user_agent.strip()))
         return user_agent.strip()
+
+
+def search_files(search_string, directory):
+    results = []
+    searcher = re.compile(search_string, re.I)
+    for root, dirs, files in os.walk(directory):
+        for name in files:
+            if searcher.search(name) is not None:
+                results.append(os.path.join(root, name))
+    return results

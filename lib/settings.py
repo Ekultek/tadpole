@@ -12,7 +12,7 @@ import lib.output
 class AccessDeniedByAWS(Exception): pass
 
 
-VERSION = "0.0.7"
+VERSION = "0.0.8"
 GRAY_HAT_WARFARE_URL = "https://buckets.grayhatwarfare.com/results"
 HOME = os.getcwd()
 LOOT_DIRECTORY = "{}/loot/{}"
@@ -141,7 +141,7 @@ def download_files(url, path, debug=False, **kwargs):
         if debug:
             lib.output.success("file saved to: {}".format(file_path))
     except AccessDeniedByAWS:
-        lib.output.warn("unable to download file: {}; access denied".format(url.split("/")[-1]))
+        lib.output.error("unable to download file: {}; access denied".format(url.split("/")[-1]))
     except Exception as e:
         lib.output.fatal("failed to download file due to unknown error: {}".format(str(e)))
 

@@ -33,7 +33,10 @@ def main():
             exit(0)
 
         if opt.searchQuery is None:
+            import os
+
             fatal("must provide a search query with `-q/--query` flag")
+            os.system("python tadpole.py --help")
             exit(1)
 
         info("searching for open s3 buckets with provided query: '{}'".format(opt.searchQuery))

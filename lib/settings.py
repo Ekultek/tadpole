@@ -12,10 +12,10 @@ import lib.output
 class AccessDeniedByAWS(Exception): pass
 
 
-VERSION = "0.0.5"
+VERSION = "0.0.6"
 GRAY_HAT_WARFARE_URL = "https://buckets.grayhatwarfare.com/results"
 HOME = os.getcwd()
-LOOT_DIRECTORY = "{}/loot".format(HOME)
+LOOT_DIRECTORY = "{}/loot/{}"
 DEFAULT_USER_AGENT = "tADpOlE/{} (Language={};Platform={})".format(
     VERSION, sys.version.split(" ")[0], platform.platform().split("-")[0]
 )
@@ -127,7 +127,7 @@ def download_files(url, path, debug=False, **kwargs):
         try:
             content_length = downloader.headers["Content-Length"]
         except Exception:
-            lib.output.warn("unable to determine file length")
+            lib.output.warn("unable to determine file length for file '{}'".format(filename))
             content_length = 0
         if int(content_length) >= 200000:
             lib.output.warn("large file being downloaded ({}), this could take a minute".format(filename))

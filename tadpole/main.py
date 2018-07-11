@@ -5,7 +5,8 @@ from lib.settings import (
     LOOT_DIRECTORY,
     DEFAULT_USER_AGENT,
     get_random_agent,
-    BANNER
+    BANNER,
+    HOME
 )
 from lib.cmd import BucketDumpParser
 from lib.output import (
@@ -41,7 +42,9 @@ def main():
         )
         info("downloading all discovered file(s)")
         for f in gathered_links[0]:
-            download_files(f, "{}/{}".format(LOOT_DIRECTORY, f.split("/")[2]), debug=opt.runVerbose, proxy=opt.useProxy)
-        success("files have been successfully downloaded into: {}".format(LOOT_DIRECTORY))
+            download_files(f, "{}/{}".format(LOOT_DIRECTORY.format(
+                HOME, opt.searchQuery
+            ), f.split("/")[2]), debug=opt.runVerbose, proxy=opt.useProxy)
+        success("files have been successfully downloaded into: {}".format(LOOT_DIRECTORY.format(HOME, opt.searchQuery)))
     except KeyboardInterrupt:
         error("user quit")

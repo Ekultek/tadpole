@@ -7,14 +7,16 @@ from lib.settings import (
     get_random_agent,
     BANNER,
     HOME,
-    search_files
+    search_files,
+    check_ip_address
 )
 from lib.cmd import BucketDumpParser
 from lib.output import (
     info,
     success,
     fatal,
-    error
+    error,
+    warn
 )
 
 
@@ -31,6 +33,17 @@ def main():
                 for i, f in enumerate(discovered_files, start=1):
                     print("#{}. {}".format(i, f))
             exit(0)
+
+        if opt.verifyProxy:
+            try:
+                real_address = check_ip_address()
+                address_behind_proxy = check_ip_address(proxy=opt.useProxy)
+                if real_address["origin"] == address_behind_proxy["origin"]:
+                    warn("it appears your proxy is pointing to your local host")
+                else:
+                    info("it appears that your proxy is running correctly")
+            except ValueError:
+                error("something went wrong during JSON conversion")
 
         if opt.searchQuery is None:
             import os

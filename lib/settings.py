@@ -12,7 +12,7 @@ import lib.output
 class AccessDeniedByAWS(Exception): pass
 
 
-VERSION = "0.0.8"
+VERSION = "0.0.10"
 GRAY_HAT_WARFARE_URL = "https://buckets.grayhatwarfare.com/results"
 HOME = os.getcwd()
 LOOT_DIRECTORY = "{}/loot/{}"
@@ -35,6 +35,18 @@ BANNER = """\033[4;31m{spacer}\033[0m\n\033[1;31m  _            _____         __
 def generate_proxy_dict(proxy):
     retval = {"http": proxy, "https": proxy}
     return retval
+
+
+def check_ip_address(proxy=None):
+    if proxy is not None:
+        proxy = generate_proxy_dict(proxy)
+    else:
+        proxy = {}
+
+    url = "http://httpbin.org/ip"
+    req = requests.get(url, proxies=proxy)
+    data = req.json()
+    return data
 
 
 def gather_bucket_links(url, query, **kwargs):
@@ -84,7 +96,7 @@ def gather_bucket_links(url, query, **kwargs):
             if url[-1] == "/":
                 url[-1] = ""
             url = url.replace("/results", page)
-            req = requests.get(url, headers=headers)
+            req = requests.get(url, headers=headers, proxies=proxy)
             soup = BeautifulSoup(req.content, "html.parser")
             for link in soup.find_all('a', href=True):
                 if aws_regex.search(link["href"]) is not None:

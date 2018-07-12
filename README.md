@@ -35,13 +35,13 @@ Running tadpole without a command will drop you into the help menu:
  | |_ / ____ \| |__| | |_) | |__| | | |____ 
   \__/_/    \_\_____/| .__/ \____/|_|______|[][][]
                      | |                    
-                     |_|   Aws Download Open buckEt files v(0.0.11)
+                     |_|   Aws Download Open buckEt files v(0.1)
 ------------------------------------------------------------------
 
-[08:32:46][FATAL] must provide a search query with `-q/--query` flag
+[09:29:39][FATAL] must provide a search query with `-q/--query` flag
 usage: tadpole.py [-h] [-q SEARCH-QUERY] [--random-agent] [--verbose]
                   [-P PROXY] [-H HEADER=1,HEADER=2,etc..] [-s STRING]
-                  [--check-proxy] [--swim]
+                  [--check-proxy] [--swim] [--limit AMOUNT]
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -58,6 +58,8 @@ optional arguments:
   --check-proxy         Verify that your proxy is working correctly
   --swim                Swim upstream to the found bucket and try to pull
                         everything out of it
+  --limit AMOUNT        Used in conjunction with `--swim` specify an amount of
+                        buckets to pull (*default=300)
 (bucketdump) TBG-a0216:tadpole admin$ 
 ```
 

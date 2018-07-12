@@ -52,4 +52,6 @@ class BucketDumpParser(argparse.ArgumentParser):
         parser.add_argument("--limit", type=int, default=300, metavar="AMOUNT", dest="bucketsToPull",
                             help="Used in conjunction with `--swim` specify an amount of buckets to pull "
                                  "(*default=300)")
+        parser.add_argument("--download-anyways", action="store_true", default=False, dest="downloadAnyways",
+                            help=argparse.SUPPRESS)
         return parser.parse_args()

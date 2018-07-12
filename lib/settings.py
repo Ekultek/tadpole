@@ -15,6 +15,9 @@ class AccessDeniedByAWS(Exception): pass
 class FileMovedException(Exception): pass
 
 
+class FileExists(Exception): pass
+
+
 DEFAULT_BUCKET_QUERY = "single_bucket_search"
 VERSION = "0.1.2"
 GRAY_HAT_WARFARE_URL = "https://buckets.grayhatwarfare.com/results"
@@ -173,6 +176,7 @@ def spider_bucket(bucket, query, proxy=None, headers=None, debug=False, limit=30
 
 def download_files(url, path, debug=False, **kwargs):
     proxy = kwargs.get("proxy", None)
+    download_anyways = kwargs.get("download_anyways", False)
 
     if proxy is not None:
         proxy = generate_proxy_dict(proxy)
@@ -188,6 +192,8 @@ def download_files(url, path, debug=False, **kwargs):
         file_path = "{}/{}".format(path, filename)
         downloader = requests.get(url, stream=True, proxies=proxy)
         if os.path.isfile(file_path):
+            if not download_anyways:
+                raise FileExists
             amount = 0
             path = file_path.split("/")
             path.pop()
@@ -197,6 +203,7 @@ def download_files(url, path, debug=False, **kwargs):
                 if filename in f:
                     amount += 1
             file_path = "{}({})".format(file_path, amount)
+
         try:
             content_length = downloader.headers["Content-Length"]
         except Exception:
@@ -204,22 +211,27 @@ def download_files(url, path, debug=False, **kwargs):
             content_length = 0
         if int(content_length) >= 200000:
             lib.output.warn("large file being downloaded ({}), this could take a minute".format(filename))
-        with open(file_path, "a+") as data:
-            for chunk in downloader.iter_content(chunk_size=8192):
-                if "AccessDenied" in chunk:
-                    os.unlink(file_path)
-                    raise AccessDeniedByAWS("access to s3 bucket is denied by AWS")
-                if "NoSuchKey" in chunk:
-                    os.unlink(file_path)
-                    raise FileMovedException
-                if chunk:
-                    data.write(chunk)
-        if debug:
-            lib.output.success("file saved to: {}".format(file_path))
+        if not os.path.isfile(file_path):
+            with open(file_path, "a+") as data:
+                for chunk in downloader.iter_content(chunk_size=8192):
+                    if "AccessDenied" in chunk:
+                        os.unlink(file_path)
+                        raise AccessDeniedByAWS("access to s3 bucket is denied by AWS")
+                    if "NoSuchKey" in chunk:
+                        os.unlink(file_path)
+                        raise FileMovedException
+                    if chunk:
+                        data.write(chunk)
+            if debug:
+                lib.output.success("file saved to: {}".format(file_path))
+        else:
+            lib.output.warn("file: '{}' already exists, skipping")
     except AccessDeniedByAWS:
         lib.output.error("unable to download file: {}; access denied".format(url.split("/")[-1]))
     except FileMovedException:
         lib.output.warn("file {} has been moved or deleted out of bucket".format(url.split("/")[-1]))
+    except FileExists:
+        pass
     except Exception as e:
         lib.output.fatal("failed to download file due to unknown error: {}".format(str(e)))
 

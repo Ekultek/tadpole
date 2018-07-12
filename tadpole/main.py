@@ -60,7 +60,8 @@ def main():
             agent = DEFAULT_USER_AGENT
         gathered_links = gather_bucket_links(
             GRAY_HAT_WARFARE_URL, opt.searchQuery, post_data=post_data, user_agent=agent, debug=opt.runVerbose,
-            proxy=opt.useProxy, extra_headers=opt.extraHeaders, crawl_bucket=opt.spiderFoundBucket
+            proxy=opt.useProxy, extra_headers=opt.extraHeaders, crawl_bucket=opt.spiderFoundBucket,
+            download_limit=opt.bucketsToPull
         )
         info("gathered a total of {} files from {} different bucket(s)".format(
             len(gathered_links[0]), len(gathered_links[1]))

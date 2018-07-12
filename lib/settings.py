@@ -12,7 +12,7 @@ import lib.output
 class AccessDeniedByAWS(Exception): pass
 
 
-VERSION = "0.0.11"
+VERSION = "0.1"
 GRAY_HAT_WARFARE_URL = "https://buckets.grayhatwarfare.com/results"
 HOME = os.getcwd()
 LOOT_DIRECTORY = "{}/loot/{}"
@@ -33,7 +33,15 @@ BANNER = """\033[4;31m{spacer}\033[0m\n\033[1;31m  _            _____         __
 
 
 def generate_proxy_dict(proxy):
-    retval = {"http": proxy, "https": proxy}
+    try:
+        if type(proxy) == str:
+            retval = {"http": proxy, "https": proxy}
+        elif type(proxy) == dict:
+            retval = proxy
+        return retval
+    except TypeError:
+        retval = proxy
+
     return retval
 
 
@@ -111,11 +119,10 @@ def gather_bucket_links(url, query, **kwargs):
         bucket_url = item.split("/")[2]
         open_buckets.add(bucket_url)
         if crawl_bucket:
-            try:
-                # gotta leave out the headers or everything gets messed up
-                spider_bucket(bucket_url, query, proxy=proxy, debug=debug, limit=download_limit)
-            except Exception:
-                lib.output.fatal("issue while downloading bucket files, skipping")
+            # gotta leave out the headers or everything gets messed up
+            spider_bucket(bucket_url, query, proxy=proxy, debug=debug, limit=download_limit)
+            # except Exception:
+            #     lib.output.fatal("issue while downloading bucket files, skipping")
     if debug:
         lib.output.debug("done!")
     return found_files, open_buckets
@@ -125,15 +132,13 @@ def spider_bucket(bucket, query, proxy=None, headers=None, debug=False, limit=30
     if "http" not in bucket:
         bucket = "http://{}".format(bucket)
 
-    if headers is not None:
-        use_headers = {}
-        for header in headers.keys():
-            use_headers[header] = headers[header]
+    if proxy is not None:
+        proxy = generate_proxy_dict(proxy)
     else:
-        use_headers = None
+        proxy = {}
 
     lib.output.info("swimming upstream to '{}'".format(bucket))
-    req = requests.get(bucket, proxies=proxy, headers=use_headers)
+    req = requests.get(bucket, proxies=proxy, headers=headers)
     soup = BeautifulSoup(req.content, "lxml")
     keys = soup.find_all("key")
     if len(keys) == 0:
@@ -206,8 +211,8 @@ def download_files(url, path, debug=False, **kwargs):
             lib.output.success("file saved to: {}".format(file_path))
     except AccessDeniedByAWS:
         lib.output.error("unable to download file: {}; access denied".format(url.split("/")[-1]))
-    except Exception as e:
-        lib.output.fatal("failed to download file due to unknown error: {}".format(str(e)))
+    # except Exception as e:
+    #     lib.output.fatal("failed to download file due to unknown error: {}".format(str(e)))
 
 
 def get_random_agent(debug=False):

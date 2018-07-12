@@ -44,7 +44,9 @@ class BucketDumpParser(argparse.ArgumentParser):
                             help="Search for a file and output the location of it")
         parser.add_argument("--check-proxy", action="store_true", dest="verifyProxy",
                             help="Verify that your proxy is working correctly")
-        parser.add_argument("--spider", action="store_true", dest="spiderFoundBucket",
-                            help="Crawl the found bucket for all available files and download them")
-        parser.add_argument("--limit", help=argparse.SUPPRESS)
+        parser.add_argument("--swim", action="store_true", dest="spiderFoundBucket",
+                            help="Swim upstream to the found bucket and try to pull everything out of it")
+        parser.add_argument("--limit", type=int, default=300, metavar="AMOUNT", dest="bucketsToPull",
+                            help="Used in conjunction with `--swim` specify an amount of buckets to pull "
+                                 "(*default=300)")
         return parser.parse_args()

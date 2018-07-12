@@ -11,6 +11,8 @@ import lib.output
 
 class AccessDeniedByAWS(Exception): pass
 
+class FileMovedException(Exception): pass
+
 
 VERSION = "0.1"
 GRAY_HAT_WARFARE_URL = "https://buckets.grayhatwarfare.com/results"
@@ -205,14 +207,19 @@ def download_files(url, path, debug=False, **kwargs):
                 if "AccessDenied" in chunk:
                     os.unlink(file_path)
                     raise AccessDeniedByAWS("access to s3 bucket is denied by AWS")
+                if "NoSuchKey" in chunk:
+                    os.unlink(file_path)
+                    raise FileMovedException
                 if chunk:
                     data.write(chunk)
         if debug:
             lib.output.success("file saved to: {}".format(file_path))
     except AccessDeniedByAWS:
         lib.output.error("unable to download file: {}; access denied".format(url.split("/")[-1]))
-    # except Exception as e:
-    #     lib.output.fatal("failed to download file due to unknown error: {}".format(str(e)))
+    except FileMovedException:
+        lib.output.warn("file {} has been moved or deleted out of bucket".format(url.split("/")[-1]))
+    except Exception as e:
+        lib.output.fatal("failed to download file due to unknown error: {}".format(str(e)))
 
 
 def get_random_agent(debug=False):

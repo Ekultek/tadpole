@@ -1,3 +1,4 @@
 *.pyc
 .idea/*
 loot
+.DS_Store

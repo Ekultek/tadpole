@@ -19,7 +19,7 @@ class FileExists(Exception): pass
 
 
 DEFAULT_BUCKET_QUERY = "single_bucket_search"
-VERSION = "0.1.2"
+VERSION = "0.1.3"
 GRAY_HAT_WARFARE_URL = "https://buckets.grayhatwarfare.com/results"
 HOME = os.getcwd()
 LOOT_DIRECTORY = "{}/loot/{}"
@@ -162,16 +162,19 @@ def spider_bucket(bucket, query, proxy=None, headers=None, debug=False, limit=30
         if i == len(keys):
             lib.output.warn("all files downloaded, leaving bucket")
             break
-        key = key_stripper(str(key.text))
-        download_url = "{}/{}".format(bucket, key)
-        download_path = "{}/{}".format(
-            LOOT_DIRECTORY.format(HOME, query),
-            bucket.split("/")[2]
-        )
-        download_files(
-            download_url, download_path,
-            debug=debug, proxy=proxy
-        )
+        try:
+            key = key_stripper(str(key.text))
+            download_url = "{}/{}".format(bucket, key)
+            download_path = "{}/{}".format(
+                LOOT_DIRECTORY.format(HOME, query),
+                bucket.split("/")[2]
+            )
+            download_files(
+                download_url, download_path,
+                debug=debug, proxy=proxy
+            )
+        except UnicodeEncodeError:
+            lib.output.fatal("unable to download file from provided key (DAMMIT UNICODE)")
 
 
 def download_files(url, path, debug=False, **kwargs):

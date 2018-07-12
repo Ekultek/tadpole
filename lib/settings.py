@@ -162,7 +162,13 @@ def spider_bucket(bucket, query, proxy=None, headers=None, debug=False, limit=30
         if i == len(keys):
             lib.output.warn("all files downloaded, leaving bucket")
             break
-        key = key_stripper(str(key.text))
+
+        try:
+            key = key_stripper(str(key.text))
+        except Exception as e:
+            lib.output.error("error while stripping key: {}".format(e))
+            continue
+
         download_url = "{}/{}".format(bucket, key)
         download_path = "{}/{}".format(
             LOOT_DIRECTORY.format(HOME, query),

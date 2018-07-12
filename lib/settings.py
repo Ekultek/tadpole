@@ -18,8 +18,9 @@ class FileMovedException(Exception): pass
 class FileExists(Exception): pass
 
 
+TADPOLE_CACHE = []
 DEFAULT_BUCKET_QUERY = "single_bucket_search"
-VERSION = "0.1.3"
+VERSION = "0.1.4"
 GRAY_HAT_WARFARE_URL = "https://buckets.grayhatwarfare.com/results"
 HOME = os.getcwd()
 LOOT_DIRECTORY = "{}/loot/{}"
@@ -163,17 +164,22 @@ def spider_bucket(bucket, query, proxy=None, headers=None, debug=False, limit=30
             lib.output.warn("all files downloaded, leaving bucket")
             break
         try:
-            key = key_stripper(str(key.text))
-            download_url = "{}/{}".format(bucket, key)
-            download_path = "{}/{}".format(
-                LOOT_DIRECTORY.format(HOME, query),
-                bucket.split("/")[2]
-            )
-            download_files(
-                download_url, download_path,
-                debug=debug, proxy=proxy
-            )
+            if key not in TADPOLE_CACHE:
+                key = key_stripper(str(key.text))
+                download_url = "{}/{}".format(bucket, key)
+                download_path = "{}/{}".format(
+                    LOOT_DIRECTORY.format(HOME, query),
+                    bucket.split("/")[2]
+                )
+                download_files(
+                    download_url, download_path,
+                    debug=debug, proxy=proxy
+                )
+            else:
+                lib.output.error("this file caused issues on the last download attempt, skipping")
+                continue
         except UnicodeEncodeError:
+            TADPOLE_CACHE.append(key)
             lib.output.fatal("unable to download file from provided key (DAMMIT UNICODE)")
 
 
@@ -210,7 +216,8 @@ def download_files(url, path, debug=False, **kwargs):
         try:
             content_length = downloader.headers["Content-Length"]
         except Exception:
-            lib.output.warn("unable to determine file length for file '{}'".format(filename))
+            if debug:
+                lib.output.debug("unable to determine file length for file '{}'".format(filename))
             content_length = 0
         if int(content_length) >= 200000:
             lib.output.warn("large file being downloaded ({}), this could take a minute".format(filename))
@@ -232,7 +239,7 @@ def download_files(url, path, debug=False, **kwargs):
     except AccessDeniedByAWS:
         lib.output.error("unable to download file: {}; access denied".format(url.split("/")[-1]))
     except FileMovedException:
-        lib.output.warn("file {} has been moved or deleted out of bucket".format(url.split("/")[-1]))
+        lib.output.error("file {} has been moved or deleted out of bucket".format(url.split("/")[-1]))
     except FileExists:
         pass
     except Exception as e:

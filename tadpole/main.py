@@ -8,7 +8,9 @@ from lib.settings import (
     BANNER,
     HOME,
     search_files,
-    check_ip_address
+    check_ip_address,
+    spider_bucket,
+    random_string
 )
 from lib.cmd import BucketDumpParser
 from lib.output import (
@@ -44,6 +46,14 @@ def main():
                     info("it appears that your proxy is running correctly")
             except ValueError:
                 error("something went wrong during JSON conversion, unable to verify proxy")
+
+        if opt.getThisBucket is not None:
+            info("connecting to specified S3 bucket '{}'".format(opt.getThisBucket))
+            spider_bucket(
+                opt.getThisBucket, random_string(), proxy=opt.useProxy, headers=opt.extraHeaders,
+                limit=opt.bucketsToPull
+            )
+            exit(1)
 
         if opt.searchQuery is None:
             import os

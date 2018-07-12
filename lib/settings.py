@@ -2,6 +2,8 @@ import re
 import os
 import sys
 import platform
+import random
+import string
 
 import requests
 from bs4 import BeautifulSoup
@@ -11,10 +13,11 @@ import lib.output
 
 class AccessDeniedByAWS(Exception): pass
 
+
 class FileMovedException(Exception): pass
 
 
-VERSION = "0.1"
+VERSION = "0.1.1"
 GRAY_HAT_WARFARE_URL = "https://buckets.grayhatwarfare.com/results"
 HOME = os.getcwd()
 LOOT_DIRECTORY = "{}/loot/{}"
@@ -57,6 +60,13 @@ def check_ip_address(proxy=None):
     req = requests.get(url, proxies=proxy)
     data = req.json()
     return data
+
+
+def random_string(acc=string.ascii_letters, length=7):
+    retval = []
+    for _ in range(length):
+        retval.append(random.choice(acc))
+    return ''.join(retval)
 
 
 def gather_bucket_links(url, query, **kwargs):

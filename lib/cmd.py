@@ -35,6 +35,8 @@ class BucketDumpParser(argparse.ArgumentParser):
         parser.add_argument("-b", "--bucket", metavar="BUCKET-URL", dest="getThisBucket",
                             help="Specify a single bucket URL and download all open and available files from "
                                  "the single bucket"),
+        parser.add_argument('-l', "--list", metavar="FILE-PATH", dest="searchQueries",
+                            help="Provide a textual file of search queries, one per line"),
         parser.add_argument("--random-agent", action="store_true", dest="randomAgent",
                             help="Use a random HTTP User-Agent")
         parser.add_argument("--verbose", action="store_true", dest="runVerbose",

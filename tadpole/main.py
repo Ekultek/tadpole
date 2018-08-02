@@ -55,35 +55,49 @@ def main():
             )
             exit(1)
 
-        if opt.searchQuery is None:
+        if opt.searchQuery is None and opt.searchQueries is None:
             import os
 
-            fatal("must provide a search query with `-q/--query` flag")
+            fatal("must provide a search query with `-q/--query` or the `-l/--list` flag")
             os.system("python tadpole.py --help")
             exit(1)
 
-        info("searching for open s3 buckets with provided query: '{}'".format(opt.searchQuery))
-        post_data = "keywords={}".format(opt.searchQuery)
-        if opt.randomAgent is not None:
-            agent = get_random_agent(debug=opt.runVerbose).strip()
+        search_queries = []
+
+        if opt.searchQuery is not None:
+            search_queries.append(opt.searchQuery)
+        elif opt.searchQueries is not None:
+            info("using all queries from provided file: {}".format(opt.searchQueries))
+            with open(opt.searchQueries) as data:
+                for item in data.readlines():
+                    search_queries.append(item.strip())
         else:
-            agent = DEFAULT_USER_AGENT
-        gathered_links = gather_bucket_links(
-            GRAY_HAT_WARFARE_URL, opt.searchQuery, post_data=post_data, user_agent=agent, debug=opt.runVerbose,
-            proxy=opt.useProxy, extra_headers=opt.extraHeaders, crawl_bucket=opt.spiderFoundBucket,
-            download_limit=opt.bucketsToPull
-        )
-        info("gathered a total of {} files from {} different bucket(s)".format(
-            len(gathered_links[0]), len(gathered_links[1]))
-        )
-        if len(gathered_links[0]) != 0:
-            info("downloading all discovered file(s)")
-            for f in gathered_links[0]:
-                download_files(f, "{}/{}".format(LOOT_DIRECTORY.format(
-                    HOME, opt.searchQuery
-                ), f.split("/")[2]), debug=opt.runVerbose, proxy=opt.useProxy)
-            success("files have been successfully downloaded into: {}".format(LOOT_DIRECTORY.format(HOME, opt.searchQuery)))
-        else:
-            error("no open buckets discovered with provided query")
+            error("no search queries provided")
+            exit(1)
+
+        for query in search_queries:
+            info("searching for open s3 buckets with provided query: '{}'".format(query))
+            post_data = "keywords={}".format(query)
+            if opt.randomAgent is not None:
+                agent = get_random_agent(debug=opt.runVerbose).strip()
+            else:
+                agent = DEFAULT_USER_AGENT
+            gathered_links = gather_bucket_links(
+                GRAY_HAT_WARFARE_URL, query, post_data=post_data, user_agent=agent, debug=opt.runVerbose,
+                proxy=opt.useProxy, extra_headers=opt.extraHeaders, crawl_bucket=opt.spiderFoundBucket,
+                download_limit=opt.bucketsToPull
+            )
+            info("gathered a total of {} files from {} different bucket(s)".format(
+                len(gathered_links[0]), len(gathered_links[1]))
+            )
+            if len(gathered_links[0]) != 0:
+                info("downloading all discovered file(s)")
+                for f in gathered_links[0]:
+                    download_files(f, "{}/{}".format(LOOT_DIRECTORY.format(
+                        HOME, query
+                    ), f.split("/")[2]), debug=opt.runVerbose, proxy=opt.useProxy)
+                success("files have been successfully downloaded into: {}".format(LOOT_DIRECTORY.format(HOME, query)))
+            else:
+                error("no open buckets discovered with provided query")
     except KeyboardInterrupt:
         error("user quit")

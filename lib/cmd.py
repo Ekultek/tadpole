@@ -11,14 +11,18 @@ class StoreDictKeyPairs(argparse.Action):
 
     def __call__(self, parser, namespace, values, option_string=None):
         for kv in values.split(","):
-            if kv.count("=") != 1:
-                first_equal_index = kv.index("=")
-                key = kv[:first_equal_index]
-                value = kv[first_equal_index + 1:]
+            if "=" in kv:
+                splitter = "="
+            else:
+                splitter = ":"
+            if kv.count(splitter) != 1:
+                first_equal_index = kv.index(splitter)
+                key = kv[:first_equal_index].strip()
+                value = kv[first_equal_index + 1:].strip()
                 self.retval[key] = value
             else:
-                k, v = kv.split("=")
-                self.retval[k] = v
+                k, v = kv.split(splitter)
+                self.retval[k.strip()] = v.strip()
         setattr(namespace, self.dest, self.retval)
 
 
@@ -43,7 +47,7 @@ class BucketDumpParser(argparse.ArgumentParser):
                             help="Run in verbose mode")
         parser.add_argument("-P", "--proxy", metavar="PROXY", dest="useProxy",
                             help="Use a proxy for the requests")
-        parser.add_argument("-H", "--headers", metavar="HEADER=1,HEADER=2,etc..", dest="extraHeaders",
+        parser.add_argument("-H", "--headers", metavar="HEADER=1,HEADER:2,etc..", dest="extraHeaders",
                             action=StoreDictKeyPairs, help="Pass extra headers with your request")
         parser.add_argument("-s", "--search", metavar="STRING", dest="fileSearch",
                             help="Search for a file and output the location of it")

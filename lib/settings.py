@@ -20,7 +20,7 @@ class FileExists(Exception): pass
 
 TADPOLE_CACHE = []
 DEFAULT_BUCKET_QUERY = "single_bucket_search"
-VERSION = "0.1.4"
+VERSION = "0.1.5"
 GRAY_HAT_WARFARE_URL = "https://buckets.grayhatwarfare.com/results"
 HOME = os.getcwd()
 LOOT_DIRECTORY = "{}/loot/{}"

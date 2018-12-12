@@ -3,3 +3,5 @@
 loot
 .DS_Store
 test.txt
+buckets.txt
+venv

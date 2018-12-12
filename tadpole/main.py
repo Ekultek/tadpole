@@ -55,6 +55,22 @@ def main():
             )
             exit(1)
 
+        if opt.fileWithBuckets is not None:
+            info("reading from bucket file")
+            with open(opt.fileWithBuckets) as buckets:
+                for bucket in buckets:
+                    try:
+                        bucket = bucket.strip()
+                        info("connecting to S3 bucket: '{}'".format(bucket))
+                        spider_bucket(
+                            bucket, DEFAULT_BUCKET_QUERY, proxy=opt.useProxy, headers=opt.extraHeaders,
+                            limit=opt.bucketsToPull
+                        )
+                    except:
+                        warn("problem with bucket, continuing")
+                        continue
+            exit(1)
+
         if opt.searchQuery is None and opt.searchQueries is None:
             import os
 

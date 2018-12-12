@@ -1,6 +1,7 @@
 import re
 import os
 import sys
+import tarfile
 import platform
 
 import requests
@@ -20,7 +21,7 @@ class FileExists(Exception): pass
 
 TADPOLE_CACHE = []
 DEFAULT_BUCKET_QUERY = "single_bucket_search"
-VERSION = "0.1.5"
+VERSION = "0.2"
 GRAY_HAT_WARFARE_URL = "https://buckets.grayhatwarfare.com/results"
 HOME = os.getcwd()
 LOOT_DIRECTORY = "{}/loot/{}"
@@ -232,6 +233,7 @@ def download_files(url, path, debug=False, **kwargs):
                         raise FileMovedException
                     if chunk:
                         data.write(chunk)
+            #tar_discovered_data(file_path)
             if debug:
                 lib.output.success("file saved to: {}".format(file_path))
         else:
@@ -264,3 +266,9 @@ def search_files(search_string, directory):
             if searcher.search(name) is not None:
                 results.append(os.path.join(root, name))
     return results
+
+
+def tar_discovered_data(folder_path):
+    output_file_name = folder_path + "tar.gz"
+    with tarfile.open(output_file_name, folder_path, "w:gz") as tar:
+        tar.add(folder_path, arcname=os.path.basename(folder_path))

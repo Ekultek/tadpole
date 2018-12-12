@@ -41,6 +41,8 @@ class BucketDumpParser(argparse.ArgumentParser):
                                  "the single bucket"),
         parser.add_argument('-l', "--list", metavar="FILE-PATH", dest="searchQueries",
                             help="Provide a textual file of search queries, one per line"),
+        parser.add_argument('-f', "--file", metavar="FILE-PATH", dest="fileWithBuckets",
+                            help="provide a file containing bucket links (one per line)")
         parser.add_argument("--random-agent", action="store_true", dest="randomAgent",
                             help="Use a random HTTP User-Agent")
         parser.add_argument("--verbose", action="store_true", dest="runVerbose",
